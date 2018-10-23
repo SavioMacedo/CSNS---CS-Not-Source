@@ -1,4 +1,4 @@
-﻿using Analyser.Helpers;
+﻿using CSNS.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,19 +7,21 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Analyser.Static
+namespace CSNS.Static
 {
     public static class CSNSStaticLoader
     {
         public delegate object DelegateMethod(params object[] parameters);
-
-        //Under construction
+        
         public static void LoadCode(Assembly assembly)
         {
             var types = assembly.GetTypes();
 
-            //Verify if a class is has a runType.
-            foreach(var type in types)
+            //Verify if a class has a runType.
+            var runTypes = types.Where(obj => obj.GetMethod("Run") != null);
+            
+            //Execute run methods, the initializer of a class.
+            foreach(var type in runTypes)
             {
                 RunClass(type);
             }
@@ -27,23 +29,8 @@ namespace Analyser.Static
 
         public static void RunClass(Type type)
         {
-            try
-            {
-                var runType = type.GetMethod("Run");
-                runType.Invoke(null, new object[] { });
-            }
-            catch
-            {
-            }
-        }
-
-        public static async Task<DelegateMethod> LoadMethod(string path, string metodoNamespace)
-        {
-            Loader loader = new Loader(path, "_matematicas");
-            await loader.LoadFileAsync();
-            var assembly = loader.Assembly;
-
-            return LoadMethod(assembly, metodoNamespace);
+            var runType = type.GetMethod("Run");
+            runType.Invoke(null, new object[] { });
         }
 
         public static DelegateMethod LoadMethod(Assembly assembly, string metodoNamespace)
